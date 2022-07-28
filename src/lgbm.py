@@ -36,7 +36,7 @@ features_last = ['B_1', 'B_2', 'B_3', 'B_4', 'B_5', 'B_6', 'B_7', 'B_8', 'B_9', 
 for i in ['test', 'train'] if INFERENCE else ['train']:
     try:
         # use saved data
-        df = pd.read_parquet(f'../input/{i}_lgbm.parquet')
+        df = pd.read_parquet(f'../test_input/{i}_lgbm.parquet')
         if i == 'train': train = df
         else: test = df
         continue
@@ -50,43 +50,43 @@ for i in ['test', 'train'] if INFERENCE else ['train']:
         df.drop(columns=['target'], inplace=True)
     gc.collect()
     print('Read', i)
-    df_avg = (df
-              .groupby(cid)
-              .mean()[features_avg]
-              .rename(columns={f: f"{f}_avg" for f in features_avg})
-             )
-    gc.collect()
-    print('Computed avg', i)
+    # df_avg = (df
+    #           .groupby(cid)
+    #           .mean()[features_avg]
+    #           .rename(columns={f: f"{f}_avg" for f in features_avg})
+    #          )
+    # gc.collect()
+    # print('Computed avg', i)
     
-    df_min = (df
-              .groupby(cid)
-              .min()[features_min]
-              .rename(columns={f: f"{f}_min" for f in features_min})
-             )
-    gc.collect()
-    print('Computed min', i)
+    # df_min = (df
+    #           .groupby(cid)
+    #           .min()[features_min]
+    #           .rename(columns={f: f"{f}_min" for f in features_min})
+    #          )
+    # gc.collect()
+    # print('Computed min', i)
     
-    df_max = (df
-              .groupby(cid)
-              .max()[features_max]
-              .rename(columns={f: f"{f}_max" for f in features_max})
-             )
-    gc.collect()
-    print('Computed max', i)
+    # df_max = (df
+    #           .groupby(cid)
+    #           .max()[features_max]
+    #           .rename(columns={f: f"{f}_max" for f in features_max})
+    #          )
+    # gc.collect()
+    # print('Computed max', i)
     
-    df = (df.loc[last, features_last]
-          .rename(columns={f: f"{f}_last" for f in features_last})
-          .set_index(np.asarray(cid[last]))
-         )
-    gc.collect()
-    print('Computed last', i)
+    # df = (df.loc[last, features_last]
+    #       .rename(columns={f: f"{f}_last" for f in features_last})
+    #       .set_index(np.asarray(cid[last]))
+    #      )
+    # gc.collect()
+    # print('Computed last', i)
     
-    df = pd.concat([df, df_min, df_max, df_avg], axis=1)
+    # df = pd.concat([df, df_min, df_max, df_avg], axis=1)
     if i == 'train': train = df
     else: test = df
-    df.to_parquet(f'../input/{i}_lgbm.parquet')
+    df.to_parquet(f'../test_input/{i}_lgbm.parquet')
     print(f"{i} shape: {df.shape}")
-    del df, df_avg, df_min, df_max, cid, last
+    # del df, df_avg, df_min, df_max, cid, last
 
 target = pd.read_csv('../input/train_labels.csv').target.values
 print(f"target shape: {target.shape}")
