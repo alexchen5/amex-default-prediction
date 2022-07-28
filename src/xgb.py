@@ -35,7 +35,7 @@ def read_file(path = '', usecols = None):
     return df
 
 train = read_file(f'../input/train.parquet')
-# test = read_file(f'../input/test.parquet')
+test = read_file(f'../input/test.parquet')
 print(train.head())
 
 gc.enable()
@@ -71,7 +71,20 @@ print('train has shape', train.shape )
 print('targets has shape', targets.shape )
 
 # Sort train and targets by customer_id to get x_train and y_train 
+train = train.sort_values(by="customer_ID")
+targets = targets.sort_values(by="customer_ID")
 
+print(train.head())
+print(targets.head())
+
+y_train = targets['target']
+del targets
+
+excluded_feats = ['customer_id']
+features = [f_ for f_ in train.columns if f_ not in excluded_feats]
+
+x_train = train[features]
+x_test = test[features]
 
 # # Goes from 918 -> 920 columns which i dont think is correct lol
 # train = pd.merge(train, targets, on="customer_ID", sort=False)
