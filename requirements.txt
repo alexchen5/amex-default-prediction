@@ -1,0 +1,10 @@
+numpy
+pandas
+matplotlib
+cycler
+IPython
+scipy
+colorama
+sklearn
+lightgbm
+pyarrow
