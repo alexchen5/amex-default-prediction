@@ -8,3 +8,5 @@ colorama
 sklearn
 lightgbm
 pyarrow
+xgboost
+catboost
