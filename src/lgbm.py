@@ -50,38 +50,38 @@ for i in ['test', 'train'] if INFERENCE else ['train']:
         df.drop(columns=['target'], inplace=True)
     gc.collect()
     print('Read', i)
-    df_avg = (df
-              .groupby(cid)
-              .mean()[features_avg]
-              .rename(columns={f: f"{f}_avg" for f in features_avg})
-             )
-    gc.collect()
-    print('Computed avg', i)
+    # df_avg = (df
+    #           .groupby(cid)
+    #           .mean()[features_avg]
+    #           .rename(columns={f: f"{f}_avg" for f in features_avg})
+    #          )
+    # gc.collect()
+    # print('Computed avg', i)
     
-    df_min = (df
-              .groupby(cid)
-              .min()[features_min]
-              .rename(columns={f: f"{f}_min" for f in features_min})
-             )
-    gc.collect()
-    print('Computed min', i)
+    # df_min = (df
+    #           .groupby(cid)
+    #           .min()[features_min]
+    #           .rename(columns={f: f"{f}_min" for f in features_min})
+    #          )
+    # gc.collect()
+    # print('Computed min', i)
     
-    df_max = (df
-              .groupby(cid)
-              .max()[features_max]
-              .rename(columns={f: f"{f}_max" for f in features_max})
-             )
-    gc.collect()
-    print('Computed max', i)
+    # df_max = (df
+    #           .groupby(cid)
+    #           .max()[features_max]
+    #           .rename(columns={f: f"{f}_max" for f in features_max})
+    #          )
+    # gc.collect()
+    # print('Computed max', i)
     
-    df = (df.loc[last, features_last]
-          .rename(columns={f: f"{f}_last" for f in features_last})
-          .set_index(np.asarray(cid[last]))
-         )
-    gc.collect()
-    print('Computed last', i)
+    # df = (df.loc[last, features_last]
+    #       .rename(columns={f: f"{f}_last" for f in features_last})
+    #       .set_index(np.asarray(cid[last]))
+    #      )
+    # gc.collect()
+    # print('Computed last', i)
     
-    df = pd.concat([df, df_min, df_max, df_avg], axis=1)
+    # df = pd.concat([df, df_min, df_max, df_avg], axis=1)
     if i == 'train': train = df
     else: test = df
     
@@ -90,7 +90,7 @@ for i in ['test', 'train'] if INFERENCE else ['train']:
     
     df.to_parquet(f'../input/processed/{i}.parquet')
     print(f"{i} shape: {df.shape}")
-    del df, df_avg, df_min, df_max, cid, last
+    # del df, df_avg, df_min, df_max, cid, last
 
 target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
 print(f"target shape: {target.shape}")
