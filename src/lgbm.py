@@ -36,14 +36,14 @@ features_last = ['B_1', 'B_2', 'B_3', 'B_4', 'B_5', 'B_6', 'B_7', 'B_8', 'B_9', 
 for i in ['test', 'train'] if INFERENCE else ['train']:
     try:
         # use saved data
-        df = pd.read_parquet(f'../test_input/{i}_lgbm.parquet')
+        df = pd.read_parquet(f'../input/processed/{i}.parquet')
         if i == 'train': train = df
         else: test = df
         continue
     except:
         pass
 
-    df = pd.read_parquet(f'../input/{i}.parquet')
+    df = pd.read_parquet(f'../input/amex-data-integer-dtypes-parquet-format/{i}.parquet')
     cid = pd.Categorical(df.pop('customer_ID'), ordered=True)
     last = (cid != np.roll(cid, -1)) # mask for last statement of every customer
     if 'target' in df.columns:
@@ -84,11 +84,15 @@ for i in ['test', 'train'] if INFERENCE else ['train']:
     # df = pd.concat([df, df_min, df_max, df_avg], axis=1)
     if i == 'train': train = df
     else: test = df
-    df.to_parquet(f'../test_input/{i}_lgbm.parquet')
+    
+    # Treat dates 
+    df.S_2 = pd.to_datetime(df.S_2)
+    
+    df.to_parquet(f'../input/processed/{i}.parquet')
     print(f"{i} shape: {df.shape}")
     # del df, df_avg, df_min, df_max, cid, last
 
-target = pd.read_csv('../input/train_labels.csv').target.values
+target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
 print(f"target shape: {target.shape}")
 
 # Cross-validation of the classifier
