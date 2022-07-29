@@ -60,6 +60,7 @@ def process_and_feature_engineer(df):
     return df
 
 train = process_and_feature_engineer(train)
+test = process_and_feature_engineer(test)
 
 # ADD TARGETS
 targets = pd.read_csv('../input/train_labels.csv')
@@ -70,7 +71,7 @@ print(targets.head())
 print('train has shape', train.shape )
 print('targets has shape', targets.shape )
 
-# Sort train and targets by customer_id to get x_train and y_train 
+# Sort train and targets by customer_id to get x_train and y_train
 train = train.sort_values(by="customer_ID")
 targets = targets.sort_values(by="customer_ID")
 
@@ -86,15 +87,56 @@ features = [f_ for f_ in train.columns if f_ not in excluded_feats]
 x_train = train[features]
 x_test = test[features]
 
-# # Goes from 918 -> 920 columns which i dont think is correct lol
-# train = pd.merge(train, targets, on="customer_ID", sort=False)
-# train.target = train.target.astype('int8')
-# print('shape after targets', train.shape )
+kf = KFold(n_splits = NFOLDS, shuffle=True, random_state=SEED)
 
-# del targets
+class XgbWrapper(object):
+    def __init__(self, seed=0, params=None):
+        self.param = params
+        self.param['seed'] = seed
+        self.nrounds = params.pop('nrounds', 250)
 
-# print(train.head())
+    def train(self, x_train, y_train):
+        dtrain = xgb.DMatrix(x_train, label=y_train)
+        self.gbdt = xgb.train(self.param, dtrain, self.nrounds)
 
-# # FEATURES
-# FEATURES = train.columns[1:-1]
-# print(f'There are {len(FEATURES)} features!')
+    def predict(self, x):
+        return self.gbdt.predict(xgb.DMatrix(x))
+
+def get_oof(clf):
+    oof_train = np.zeros((ntrain,))
+    oof_test = np.zeros((ntest,))
+    oof_test_skf = np.empty((NFOLDS, ntest))
+
+    for i, (train_index, test_index) in enumerate(kf.split(x_train)):
+        x_tr = x_train.loc[train_index]
+        y_tr = y_train.loc[train_index]
+        x_te = x_train.loc[test_index]
+
+        clf.train(x_tr, y_tr)
+
+        oof_train[test_index] = clf.predict(x_te)
+        oof_test_skf[i, :] = clf.predict(x_test)
+
+    oof_test[:] = oof_test_skf.mean(axis=0)
+    return oof_train.reshape(-1, 1), oof_test.reshape(-1, 1)
+
+xgb_params = {
+    'seed': 0,
+    'colsample_bytree': 0.7,
+    'silent': 1,
+    'subsample': 0.7,
+    'learning_rate': 0.075,
+    'objective': 'binary:logistic',
+    'max_depth': 4,
+    'num_parallel_tree': 1,
+    'min_child_weight': 1,
+    'nrounds': 200
+}
+
+xg = XgbWrapper(seed=SEED, params=xgb_params)
+
+ntrain = x_train.shape[0]
+ntest = x_test.shape[0]
+xg_oof_train, xg_oof_test = get_oof(xg)
+
+print("XG-CV: {}".format(sqrt(mean_squared_error(y_train, xg_oof_train))))
