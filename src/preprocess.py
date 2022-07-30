@@ -169,6 +169,7 @@ rmb_maybe = [
 def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
     train = pd.read_parquet(train_in)
     test = pd.read_parquet(test_in)
+    print("Read inputs")
     
     test_start_cid = test['customer_ID'][0]
     temp = pd.concat([train, test], axis=0, ignore_index=True)
@@ -241,6 +242,7 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
     
     train.to_parquet(train_out)
     test.to_parquet(test_out)
+    print("All done")
 
 if __name__ == "__main__":
     # dir_train_in = '../input/subsampled'
