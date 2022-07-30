@@ -4,13 +4,19 @@ from importData import import_data
 
 df = pd.read_parquet(f'../input/train.parquet')
 labels = pd.read_csv(f'../input/train_labels.csv')
+# test = pd.read_parquet(f'../input/test.parquet')
 cid = pd.Categorical(df.pop('customer_ID'), ordered=True)
 
 df = df.groupby(cid).mean()
-df = df.head(100000)
+df = df.head(1000)
 print(df.shape)
 df.to_parquet(f'../test_input/shrunk_train.parquet')
 
-labels = labels.head(100000)
+labels = labels.head(1000)
 print(labels.shape)
 labels.to_csv(f'../test_input/shrunk_train_label.csv')
+
+# test = test.groupby(cid).mean()
+# # test = test.head(10000)
+# print(test.shape)
+# test.to_parquet(f'../test_input/test.parquet')
