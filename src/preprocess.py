@@ -23,29 +23,34 @@ def aggregate_features(df: pd.DataFrame):
     if 'target' in df.columns:
         df.drop(columns=['target'], inplace=True)
     gc.collect()
+    print('Read')
     df_avg = (df
               .groupby(cid)
               .mean()[features_avg]
               .rename(columns={f: f"{f}_avg" for f in features_avg})
              )
     gc.collect()
+    print('Computed avg.')
     df_min = (df
               .groupby(cid)
               .min()[features_min]
               .rename(columns={f: f"{f}_min" for f in features_min})
              )
     gc.collect()
+    print('Computed min.')
     df_max = (df
               .groupby(cid)
               .max()[features_max]
               .rename(columns={f: f"{f}_max" for f in features_max})
              )
     gc.collect()
+    print('Computed max.')
     df = (df.loc[last, features_last]
           .rename(columns={f: f"{f}_last" for f in features_last})
           .set_index(np.asarray(cid[last]))
          )
     gc.collect()
+    print('Computed last')
     df = pd.concat([df, df_min, df_max, df_avg], axis=1)
     del df_min, df_max, df_avg
     gc.collect()
@@ -172,10 +177,12 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
     # Remove outlier statements from categorical analysis
     temp = temp[(temp['D_64'] != 1) & (temp['D_66'] != 0) & (temp['D_68'] != 0)]
     temp.reset_index(inplace=True)
+    print("Removed outliers")
     
     # Drop features from our graphical analysis
     temp.drop(rmv_definite, axis=1, inplace=True)
     temp.drop(rmb_maybe, axis=1, inplace=True)
+    print("Dropped features")
     
     # Remove cids 
     cids = temp.pop('customer_ID')
@@ -196,8 +203,7 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
     for f in temp.columns:
         if np.isin(temp[f].unique(), [-1, 0, 1]).all():
             categorical[f] = temp.pop(f)
-            
-    # print(categorical.columns)
+    print(f"Calculated categorical: {categorical.columns}")
     # plot_categorical(categorical, days, cpy)
     
     # Create Markers to mark relative time of each statement
@@ -207,6 +213,7 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
     markers['d_biannual'] = markers['d_year'] % int(365 / 2)
     markers['d_month'] = days.map(lambda d: d.day)
     markers['d_week'] = days.map(lambda d: d.weekday())
+    print("Made markers")
     
     # Fit time-static bias to each marker, and shift the continious data
     for f in temp.columns:
@@ -220,10 +227,13 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
             bias = p(markers[marker])
             temp[f] -= bias
     # chart_diff(before, temp, markers)
+    print("Finished Scaling")
     
     # now combine and separate back into test and train 
     df = pd.concat([cids, days, categorical, temp], axis=1)
+    print('Now aggregating')
     df = aggregate_features(df)
+    print('Done aggregating')
     
     s = df.index.get_loc(test_start_cid)
     train = df.iloc[0:s]
