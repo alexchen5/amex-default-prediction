@@ -1,21 +1,23 @@
-# LOAD LIBRARIES
-import pandas as pd, numpy as np # CPU libraries
-# import cupy, cudf # GPU libraries
-import matplotlib.pyplot as plt, gc, os
+import pandas as pd
+import numpy as np
+from scipy.stats import skew
+import xgboost as xgb
+from sklearn.model_selection import KFold
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LogisticRegression
+from math import sqrt
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import KFold
+import gc
 
-# print('RAPIDS version',cudf.__version__)
-
-# VERSION NAME FOR SAVED MODEL FILES
-VER = 1
-
-# TRAIN RANDOM SEED
-SEED = 42
-
-# FILL NAN VALUE
+# Modelling parameters
+NFOLDS = 5
+SEED = 0
+NROWS = None
 NAN_VALUE = -127 # will fit in int8
 
-# FOLDS PER MODEL
-FOLDS = 5
 
 def read_file(path = '', usecols = None):
     # LOAD DATAFRAME
@@ -34,8 +36,9 @@ def read_file(path = '', usecols = None):
 
 train = read_file(f'../input/train.parquet')
 test = read_file(f'../input/test.parquet')
-
 print(train.head())
+
+gc.enable()
 
 def process_and_feature_engineer(df):
     # FEATURE ENGINEERING FROM 
@@ -57,89 +60,83 @@ def process_and_feature_engineer(df):
     return df
 
 train = process_and_feature_engineer(train)
-print(train.head())
+test = process_and_feature_engineer(test)
 
 # ADD TARGETS
 targets = pd.read_csv('../input/train_labels.csv')
-targets['customer_ID'] = targets['customer_ID'].str[-16:].str.hex_to_int().astype('int64')
-targets = targets.set_index('customer_ID')
-train = train.merge(targets, left_index=True, right_index=True, how='left')
-train.target = train.target.astype('int8')
+
+print(train.head())
+print(targets.head())
+
+print('train has shape', train.shape )
+print('targets has shape', targets.shape )
+
+# Sort train and targets by customer_id to get x_train and y_train
+train = train.sort_values(by="customer_ID")
+targets = targets.sort_values(by="customer_ID")
+
+print(train.head())
+print(targets.head())
+
+y_train = targets['target']
 del targets
 
-# NEEDED TO MAKE CV DETERMINISTIC (cudf merge above randomly shuffles rows)
-train = train.sort_index().reset_index()
+excluded_feats = ['customer_id']
+features = [f_ for f_ in train.columns if f_ not in excluded_feats]
 
-# FEATURES
-FEATURES = train.columns[1:-1]
-print(f'There are {len(FEATURES)} features!')
+x_train = train[features]
+x_test = test[features]
 
+kf = KFold(n_splits = NFOLDS, shuffle=True, random_state=SEED)
 
-# LOAD XGB LIBRARY
-from sklearn.model_selection import KFold
-import xgboost as xgb
-# print('XGB Version',xgb.__version__)
+class XgbWrapper(object):
+    def __init__(self, seed=0, params=None):
+        self.param = params
+        self.param['seed'] = seed
+        self.nrounds = params.pop('nrounds', 250)
 
-# XGB MODEL PARAMETERS
-xgb_parms = { 
-    'max_depth':4, 
-    'learning_rate':0.05, 
-    'subsample':0.8,
-    'colsample_bytree':0.6, 
-    'eval_metric':'logloss',
-    'objective':'binary:logistic',
-    'tree_method':'gpu_hist',
-    'predictor':'gpu_predictor',
-    'random_state':SEED
+    def train(self, x_train, y_train):
+        dtrain = xgb.DMatrix(x_train, label=y_train)
+        self.gbdt = xgb.train(self.param, dtrain, self.nrounds)
+
+    def predict(self, x):
+        return self.gbdt.predict(xgb.DMatrix(x))
+
+def get_oof(clf):
+    oof_train = np.zeros((ntrain,))
+    oof_test = np.zeros((ntest,))
+    oof_test_skf = np.empty((NFOLDS, ntest))
+
+    for i, (train_index, test_index) in enumerate(kf.split(x_train)):
+        x_tr = x_train.loc[train_index]
+        y_tr = y_train.loc[train_index]
+        x_te = x_train.loc[test_index]
+
+        clf.train(x_tr, y_tr)
+
+        oof_train[test_index] = clf.predict(x_te)
+        oof_test_skf[i, :] = clf.predict(x_test)
+
+    oof_test[:] = oof_test_skf.mean(axis=0)
+    return oof_train.reshape(-1, 1), oof_test.reshape(-1, 1)
+
+xgb_params = {
+    'seed': 0,
+    'colsample_bytree': 0.7,
+    'silent': 1,
+    'subsample': 0.7,
+    'learning_rate': 0.075,
+    'objective': 'binary:logistic',
+    'max_depth': 4,
+    'num_parallel_tree': 1,
+    'min_child_weight': 1,
+    'nrounds': 200
 }
 
-# NEEDED WITH DeviceQuantileDMatrix BELOW
-class IterLoadForDMatrix(xgb.core.DataIter):
-    def __init__(self, df=None, features=None, target=None, batch_size=256*1024):
-        self.features = features
-        self.target = target
-        self.df = df
-        self.it = 0 # set iterator to 0
-        self.batch_size = batch_size
-        self.batches = int( np.ceil( len(df) / self.batch_size ) )
-        super().__init__()
+xg = XgbWrapper(seed=SEED, params=xgb_params)
 
-    def reset(self):
-        '''Reset the iterator'''
-        self.it = 0
+ntrain = x_train.shape[0]
+ntest = x_test.shape[0]
+xg_oof_train, xg_oof_test = get_oof(xg)
 
-    def next(self, input_data):
-        '''Yield next batch of data.'''
-        if self.it == self.batches:
-            return 0 # Return 0 when there's no more batch.
-        
-        a = self.it * self.batch_size
-        b = min( (self.it + 1) * self.batch_size, len(self.df) )
-        dt = cudf.DataFrame(self.df.iloc[a:b])
-        input_data(data=dt[self.features], label=dt[self.target]) #, weight=dt['weight'])
-        self.it += 1
-        return 1
-
-# https://www.kaggle.com/kyakovlev
-# https://www.kaggle.com/competitions/amex-default-prediction/discussion/327534
-def amex_metric_mod(y_true, y_pred):
-
-    labels     = np.transpose(np.array([y_true, y_pred]))
-    labels     = labels[labels[:, 1].argsort()[::-1]]
-    weights    = np.where(labels[:,0]==0, 20, 1)
-    cut_vals   = labels[np.cumsum(weights) <= int(0.04 * np.sum(weights))]
-    top_four   = np.sum(cut_vals[:,0]) / np.sum(labels[:,0])
-
-    gini = [0,0]
-    for i in [1,0]:
-        labels         = np.transpose(np.array([y_true, y_pred]))
-        labels         = labels[labels[:, i].argsort()[::-1]]
-        weight         = np.where(labels[:,0]==0, 20, 1)
-        weight_random  = np.cumsum(weight / np.sum(weight))
-        total_pos      = np.sum(labels[:, 0] *  weight)
-        cum_pos_found  = np.cumsum(labels[:, 0] * weight)
-        lorentz        = cum_pos_found / total_pos
-        gini[i]        = np.sum((lorentz - weight_random) * weight)
-
-    return 0.5 * (gini[1]/gini[0] + top_four)
-
+print("XG-CV: {}".format(sqrt(mean_squared_error(y_train, xg_oof_train))))
