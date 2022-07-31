@@ -8,13 +8,11 @@ labels = pd.read_csv(f'../input/train_labels.csv')
 cid = pd.Categorical(df.pop('customer_ID'), ordered=True)
 
 df = df.groupby(cid).mean()
-df = df.head(1000)
 print(df.shape)
-df.to_parquet(f'../test_input/shrunk_train.parquet')
+df.to_parquet(f'../test_input/train.parquet')
 
-labels = labels.head(1000)
 print(labels.shape)
-labels.to_csv(f'../test_input/shrunk_train_label.csv')
+labels.to_csv(f'../test_input/train_label.csv')
 
 # test = test.groupby(cid).mean()
 # # test = test.head(10000)
