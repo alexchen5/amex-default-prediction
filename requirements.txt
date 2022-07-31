@@ -10,3 +10,4 @@ lightgbm
 pyarrow
 xgboost
 catboost
+eli5
