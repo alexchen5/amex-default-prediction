@@ -22,15 +22,15 @@ NFOLDS = 5
 SEED = 0
 NROWS = None
 
-x_train = pd.read_parquet(f'../test_input/train.parquet')
-y_train = pd.read_csv(f'../input/train_labels.csv').target.values
-x_test = pd.read_parquet(f'../test_input/test.parquet')
+x_train = pd.read_parquet(f'../test_input/shrunk_train.parquet')
+y_train = pd.read_csv(f'../test_input/shrunk_train_label.csv').target.values
+# x_test = pd.read_parquet(f'../test_input/test.parquet')
 
 features = [f for f in x_train.columns if f != 'customer_ID' and f != 'target']
-x_train = x_train.fillna(0)
-x_test= x_test.fillna(0)
+# x_train = x_train.fillna(0)
+# x_test= x_test.fillna(0)
 ntrain = x_train.shape[0]
-ntest = x_test.shape[0]
+# ntest = x_test.shape[0]
 # print(ntest)
 kf = KFold(n_splits = NFOLDS, shuffle=True, random_state=SEED)
 
@@ -185,18 +185,21 @@ rf = SklearnWrapper(clf=RandomForestClassifier, seed=SEED, params=rf_params)
 cb = CatboostWrapper(clf= CatBoostClassifier, seed = SEED, params=catboost_params)
 lg = LightGBMWrapper(clf = LGBMClassifier, params = lightgbm_params)
 
-xg_oof_train, xg_score = get_oof(xg)
+
 # et_oof_train, et_oof_test = get_oof(et)
 # rf_oof_train, rf_oof_test = get_oof(rf)
 lg_oof_train, lg_score = get_oof(lg)
 cb_oof_train, cb_score = get_oof(cb)
+x_train = x_train.fillna(0)
+xg_oof_train, xg_score = get_oof(xg)
+# cb_oof_train, cb_score = get_oof(cb)
 
-print("XG-CV: {}".format(xg_score))
-xg.save_model()
-print("LG-CV: {}".format(lg_score))
-lg.save_model()
-print("CB-CV: {}".format(cb_score))
-cb.save_model()
+# print("XG-CV: {}".format(xg_score))
+# xg.save_model()
+# print("LG-CV: {}".format(lg_score))
+# lg.save_model()
+# print("CB-CV: {}".format(cb_score))
+# cb.save_model()
 # print(cb_oof_train.shape)
 # x_train = np.hstack((xg_oof_train,lg_oof_train, cb_oof_train)).reshape(-1, 3)
 # x_train = np.concatenate((xg_oof_train, lg_oof_train, cb_oof_train), axis=1)
@@ -205,13 +208,13 @@ cb.save_model()
 # print(y_train.shape)
 
 xg_pred = xg.predict(x_train)
-print(xg_pred)
+print(np.mean(amex_metric(y_train, xg_pred)))
 lg_pred = lg.predict(x_train)
-print(lg_pred)
+print(np.mean(amex_metric(y_train, lg_pred)))
 cb_pred = cb.predict(x_train)
-print(cb_pred)
+print(np.mean(amex_metric(y_train, cb_pred)))
 final_pred = 0.325 * xg_pred + 0.325 * cb_pred + 0.35 * lg_pred
-print(amex_metric(y_train, final_pred))
+print(np.mean(amex_metric(y_train, final_pred)))
 # final_pred = 0.5 * cb_pred + 5 * lg_pred
 
 # sub = pd.DataFrame({'customer_ID': x_test.index,
