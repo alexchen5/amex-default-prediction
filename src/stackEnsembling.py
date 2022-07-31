@@ -22,9 +22,9 @@ NFOLDS = 5
 SEED = 0
 NROWS = None
 
-x_train = pd.read_parquet(f'../test_input/shrunk_train.parquet')
-y_train = pd.read_csv(f'../test_input/shrunk_train_label.csv').target.values
-x_test = pd.read_parquet(f'../test_input/shrunk_test.parquet')
+x_train = pd.read_parquet(f'../test_input/train.parquet')
+y_train = pd.read_csv(f'../input/train_labels.csv').target.values
+x_test = pd.read_parquet(f'../test_input/test.parquet')
 
 features = [f for f in x_train.columns if f != 'customer_ID' and f != 'target']
 x_train = x_train.fillna(0)
@@ -204,13 +204,14 @@ cb.save_model()
 # print(x_train.shape)
 # print(y_train.shape)
 
-xg_pred = xg.predict(x_test)
+xg_pred = xg.predict(x_train)
 print(xg_pred)
-lg_pred = lg.predict(x_test)
+lg_pred = lg.predict(x_train)
 print(lg_pred)
-cb_pred = cb.predict(x_test)
+cb_pred = cb.predict(x_train)
 print(cb_pred)
-# final_pred = 0.325 * xg_pred + 0.325 * cb_pred + 0.35 * lg_pred
+final_pred = 0.325 * xg_pred + 0.325 * cb_pred + 0.35 * lg_pred
+print(amex_metric(y_train, final_pred))
 # final_pred = 0.5 * cb_pred + 5 * lg_pred
 
 # sub = pd.DataFrame({'customer_ID': x_test.index,
