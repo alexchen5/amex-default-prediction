@@ -22,8 +22,8 @@ NFOLDS = 5
 SEED = 0
 NROWS = None
 
-x_train = pd.read_parquet(f'../test_input/shrunk_train.parquet')
-y_train = pd.read_csv(f'../test_input/shrunk_train_label.csv').target.values
+x_train = pd.read_parquet(f'../test_input/train_lgbm.parquet')
+y_train = pd.read_csv(f'../test_input/train_label.csv').target.values
 # x_test = pd.read_parquet(f'../test_input/test.parquet')
 
 features = [f for f in x_train.columns if f != 'customer_ID' and f != 'target']
