@@ -51,9 +51,7 @@ param_test5 = {
  'subsample':[i/100.0 for i in range(75,90,5)],
  'colsample_bytree':[i/100.0 for i in range(50,80,5)]
 }
-param_test6 = {
- 'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100]
-}
+
 gsearch1 = GridSearchCV(estimator = xgb.XGBClassifier( learning_rate =0.1, n_estimators=140, max_depth=3,
  min_child_weight=1, gamma=0, subsample=0.8, colsample_bytree=0.75,
  objective= 'binary:logistic', nthread=4, scale_pos_weight=1, seed=27), 
