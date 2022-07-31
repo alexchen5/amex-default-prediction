@@ -90,14 +90,14 @@ def lgb_amex_metric(y_true, y_pred):
 #     del df, df_avg, df_min, df_max, cid, last
 
 # target = pd.read_csv('../input/train_labels.csv').target.values
-train = pd.read_parquet(f'../test_input/train_lgbm.parquet')
-target = pd.read_csv(f'../input/train_labels.csv').target.values
+# train = pd.read_parquet(f'../test_input/train_lgbm.parquet')
+# target = pd.read_csv(f'../input/train_labels.csv').target.values
 # train = pd.read_parquet(f'../test_input/shrunk_train.parquet')
 # target = pd.read_csv(f'../test_input/shrunk_train_label.csv').target.values
 # test = pd.read_parquet(f'../test_input/test.parquet')
 # train = pd.read_parquet(f'../input/processed/train.parquet')  
-test = pd.read_parquet(f'../input/processed/test.parquet')  
-target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
+# test = pd.read_parquet(f'../input/processed/test.parquet')  
+# target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
 
 print(f"train shape: {train.shape}")
 print(f"test shape: {test.shape}")

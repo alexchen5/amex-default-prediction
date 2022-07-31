@@ -245,8 +245,8 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
 if __name__ == "__main__":
     # dir_train_in = '../input/subsampled'
     # dir_test_in = '../input/subsampled'
-    dir_train_in = '../input/amex-data-integer-dtypes-parquet-format'
-    dir_test_in = '../input/amex-data-integer-dtypes-parquet-format'
+    dir_train_in = '../input'
+    dir_test_in = '../input'
     dir_out = '../input/processed' 
 
     preprocess(
