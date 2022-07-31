@@ -19,10 +19,15 @@ def aggregate_features(df: pd.DataFrame):
     features_max = ['B_1', 'B_2', 'B_3', 'B_4', 'B_5', 'B_6', 'B_7', 'B_8', 'B_9', 'B_10', 'B_12', 'B_13', 'B_14', 'B_15', 'B_16', 'B_17', 'B_18', 'B_19', 'B_21', 'B_23', 'B_24', 'B_25', 'B_29', 'B_30', 'B_33', 'B_37', 'B_38', 'B_39', 'B_40', 'B_42', 'D_39', 'D_41', 'D_42', 'D_43', 'D_44', 'D_45', 'D_46', 'D_47', 'D_48', 'D_49', 'D_50', 'D_52', 'D_55', 'D_56', 'D_58', 'D_59', 'D_60', 'D_61', 'D_63', 'D_64', 'D_65', 'D_70', 'D_71', 'D_72', 'D_73', 'D_74', 'D_76', 'D_77', 'D_78', 'D_80', 'D_82', 'D_84', 'D_91', 'D_102', 'D_105', 'D_107', 'D_110', 'D_111', 'D_112', 'D_115', 'D_116', 'D_117', 'D_118', 'D_119', 'D_121', 'D_122', 'D_123', 'D_124', 'D_125', 'D_126', 'D_128', 'D_131', 'D_132', 'D_133', 'D_134', 'D_135', 'D_136', 'D_138', 'D_140', 'D_141', 'D_142', 'D_144', 'D_145', 'P_2', 'P_3', 'P_4', 'R_1', 'R_3', 'R_5', 'R_6', 'R_7', 'R_8', 'R_10', 'R_11', 'R_14', 'R_17', 'R_20', 'R_26', 'R_27', 'S_3', 'S_5', 'S_7', 'S_8', 'S_11', 'S_12', 'S_13', 'S_15', 'S_16', 'S_22', 'S_23', 'S_24', 'S_25', 'S_26', 'S_27']
     features_last = ['B_1', 'B_2', 'B_3', 'B_4', 'B_5', 'B_6', 'B_7', 'B_8', 'B_9', 'B_10', 'B_11', 'B_12', 'B_13', 'B_14', 'B_15', 'B_16', 'B_17', 'B_18', 'B_19', 'B_20', 'B_21', 'B_22', 'B_23', 'B_24', 'B_25', 'B_26', 'B_28', 'B_29', 'B_30', 'B_32', 'B_33', 'B_36', 'B_37', 'B_38', 'B_39', 'B_40', 'B_41', 'B_42', 'D_39', 'D_41', 'D_42', 'D_43', 'D_44', 'D_45', 'D_46', 'D_47', 'D_48', 'D_49', 'D_50', 'D_51', 'D_52', 'D_53', 'D_54', 'D_55', 'D_56', 'D_58', 'D_59', 'D_60', 'D_61', 'D_62', 'D_63', 'D_64', 'D_65', 'D_69', 'D_70', 'D_71', 'D_72', 'D_73', 'D_75', 'D_76', 'D_77', 'D_78', 'D_79', 'D_80', 'D_81', 'D_82', 'D_83', 'D_86', 'D_91', 'D_96', 'D_105', 'D_106', 'D_112', 'D_114', 'D_119', 'D_120', 'D_121', 'D_122', 'D_124', 'D_125', 'D_126', 'D_127', 'D_130', 'D_131', 'D_132', 'D_133', 'D_134', 'D_138', 'D_140', 'D_141', 'D_142', 'D_145', 'P_2', 'P_3', 'P_4', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7', 'R_8', 'R_9', 'R_10', 'R_11', 'R_12', 'R_13', 'R_14', 'R_15', 'R_19', 'R_20', 'R_26', 'R_27', 'S_3', 'S_5', 'S_6', 'S_7', 'S_8', 'S_9', 'S_11', 'S_12', 'S_13', 'S_16', 'S_19', 'S_20', 'S_22', 'S_23', 'S_24', 'S_25', 'S_26', 'S_27']
     
+    features_avg = [f for f in features_avg if f in df.columns]
+    features_min = [f for f in features_min if f in df.columns]
+    features_max = [f for f in features_max if f in df.columns]
+    features_last = [f for f in features_last if f in df.columns]
+    
+    print(features_avg)
+    
     cid = pd.Categorical(df.pop('customer_ID'), ordered=True)
     last = (cid != np.roll(cid, -1)) # mask for last statement of every customer
-    if 'target' in df.columns:
-        df.drop(columns=['target'], inplace=True)
     gc.collect()
     print('Read')
     df_avg = (df
@@ -168,95 +173,95 @@ rmb_maybe = [
 ]
 
 def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
-    train = pd.read_parquet(train_in)
-    test = pd.read_parquet(test_in)
-    print("Read inputs")
+    # train = pd.read_parquet(train_in)
+    # test = pd.read_parquet(test_in)
+    # print("Read inputs")
     
-    test_start_cid = test['customer_ID'][0]
-    temp = pd.concat([train, test], axis=0, ignore_index=True)
-    del train, test
+    # test_start_cid = test['customer_ID'][0]
+    # temp = pd.concat([train, test], axis=0, ignore_index=True)
+    # del train, test
     
-    # Remove outlier statements from categorical analysis
-    temp = temp[(temp['D_64'] != 1) & (temp['D_66'] != 0) & (temp['D_68'] != 0)]
-    temp.reset_index(inplace=True)
-    print("Removed outliers")
+    # # Remove outlier statements from categorical analysis
+    # temp = temp[(temp['D_64'] != 1) & (temp['D_66'] != 0) & (temp['D_68'] != 0)]
+    # temp.reset_index(inplace=True)
+    # print("Removed outliers")
     
-    # Drop features from our graphical analysis
-    temp.drop(rmv_definite, axis=1, inplace=True)
-    temp.drop(rmb_maybe, axis=1, inplace=True)
-    print("Dropped features")
+    # # Drop features from our graphical analysis
+    # temp.drop(rmv_definite, axis=1, inplace=True)
+    # temp.drop(rmb_maybe, axis=1, inplace=True)
+    # print("Dropped features")
     
-    # Remove cids 
-    cids = temp.pop('customer_ID')
+    # # Remove cids 
+    # cids = temp.pop('customer_ID')
     
-    # Remove day lavels
-    days = temp.pop("S_2").map(lambda d: datetime.datetime.strptime(d, "%Y-%m-%d"))
+    # # Remove day lavels
+    # days = temp.pop("S_2").map(lambda d: datetime.datetime.strptime(d, "%Y-%m-%d"))
     
-    # Remove all non-continuous features
-    categorical = temp.select_dtypes(exclude=['float32'])
-    temp = temp.select_dtypes(include=['float32'])
+    # # Remove all non-continuous features
+    # categorical = temp.select_dtypes(exclude=['float32'])
+    # temp = temp.select_dtypes(include=['float32'])
     
-    # pd.DataFrame()
-    # # if f is one of the AMEX given caterogicals
-    # for f in ['B_30', 'B_38', 'D_114', 'D_116', 'D_117', 'D_120', 'D_126', 'D_63', 'D_64', 'D_66', 'D_68']:
-    #     try:
-    #         categorical[f] = temp.pop(f)
-    #     except:
-    #         # f has been dropped beforehand
-    #         pass
-    # # if f only consists of [-1, 0, 1]
-    # for f in temp.columns:
-    #     if np.isin(temp[f].unique(), [-1, 0, 1]).all():
-    #         categorical[f] = temp.pop(f)
+    # # pd.DataFrame()
+    # # # if f is one of the AMEX given caterogicals
+    # # for f in ['B_30', 'B_38', 'D_114', 'D_116', 'D_117', 'D_120', 'D_126', 'D_63', 'D_64', 'D_66', 'D_68']:
+    # #     try:
+    # #         categorical[f] = temp.pop(f)
+    # #     except:
+    # #         # f has been dropped beforehand
+    # #         pass
+    # # # if f only consists of [-1, 0, 1]
+    # # for f in temp.columns:
+    # #     if np.isin(temp[f].unique(), [-1, 0, 1]).all():
+    # #         categorical[f] = temp.pop(f)
             
-    # # Experiment with dropping all non-continuous data
-    # values = []
-    # for f in temp.columns:
-    #     values.append([f, temp[f].unique().size, temp[f].dtype])
-    # values.sort(key=lambda v: v[1])
-    # for v in values:
-    #     print(v)
-    # return
+    # # # Experiment with dropping all non-continuous data
+    # # values = []
+    # # for f in temp.columns:
+    # #     values.append([f, temp[f].unique().size, temp[f].dtype])
+    # # values.sort(key=lambda v: v[1])
+    # # for v in values:
+    # #     print(v)
+    # # return
         
-    print(f"Calculated categorical: {categorical.columns}")
-    # plot_categorical(categorical, days, cpy)
+    # print(f"Calculated categorical: {categorical.columns}")
+    # # plot_categorical(categorical, days, cpy)
     
-    # Create Markers to mark relative time of each statement
-    markers = pd.DataFrame()
-    markers['d_end'] = days.map(lambda d: (datetime.datetime(2019, 12, 1) - d).days)
-    markers['d_year'] = days.map(lambda d: (d - datetime.datetime(d.year, 1, 1)).days)
-    markers['d_biannual'] = markers['d_year'] % int(365 / 2)
-    markers['d_month'] = days.map(lambda d: d.day)
-    markers['d_week'] = days.map(lambda d: d.weekday())
-    print("Made markers")
+    # # Create Markers to mark relative time of each statement
+    # markers = pd.DataFrame()
+    # markers['d_end'] = days.map(lambda d: (datetime.datetime(2019, 12, 1) - d).days)
+    # markers['d_year'] = days.map(lambda d: (d - datetime.datetime(d.year, 1, 1)).days)
+    # markers['d_biannual'] = markers['d_year'] % int(365 / 2)
+    # markers['d_month'] = days.map(lambda d: d.day)
+    # markers['d_week'] = days.map(lambda d: d.weekday())
+    # print("Made markers")
     
-    # Fit time-static bias to each marker, and shift the continious data
-    for f in temp.columns:
-        for marker in markers.columns:
-            fit = pd.concat([temp[f], markers[marker]], axis=1, keys=[f, marker])
-            fit.dropna(inplace=True)
-            fit.set_index(marker, inplace=True)
-            fit[f] = fit.groupby(marker)[f].mean()
+    # # Fit time-static bias to each marker, and shift the continious data
+    # for f in temp.columns:
+    #     for marker in markers.columns:
+    #         fit = pd.concat([temp[f], markers[marker]], axis=1, keys=[f, marker])
+    #         fit.dropna(inplace=True)
+    #         fit.set_index(marker, inplace=True)
+    #         fit[f] = fit.groupby(marker)[f].mean()
             
-            p = np.poly1d(np.polyfit(fit.index.values, fit[f], 1))
-            bias = p(markers[marker])
-            temp[f] -= bias
-    # chart_diff(before, temp, markers)
-    print("Finished Scaling")
+    #         p = np.poly1d(np.polyfit(fit.index.values, fit[f], 1))
+    #         bias = p(markers[marker])
+    #         temp[f] -= bias
+    # # chart_diff(before, temp, markers)
+    # print("Finished Scaling")
     
-    # now combine and separate back into test and train 
-    df = pd.concat([cids, days, categorical, temp], axis=1)
+    # # now combine and separate back into test and train 
+    # df = pd.concat([cids, days, categorical, temp], axis=1)
     
     # Uncomment below if splitting in 2 steps
     
     # df.to_parquet('../input/processed/scaled_all.parquet')
     # return
-    # print('start')
-    # test = pd.read_parquet(test_in)
-    # test_start_cid = test['customer_ID'][0]
-    # del test
+    print('start')
+    test = pd.read_parquet(test_in)
+    test_start_cid = test['customer_ID'][0]
+    del test
     
-    # df = pd.read_parquet('../input/processed/scaled_all.parquet')
+    df = pd.read_parquet('../input/processed/scaled_all.parquet')
     
     print('Now aggregating')
     df = aggregate_features(df)
@@ -273,13 +278,13 @@ def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
 if __name__ == "__main__":
     # Subsample
     dir_train_in = '../input/subsampled'
-    dir_test_in = '../input/subsampled'
-    dir_out = '../input/subsample-processed' 
+    # dir_test_in = '../input/subsampled'
+    # dir_out = '../input/subsample-processed' 
     
     # Real
     # dir_train_in = '../input/amex-data-integer-dtypes-parquet-format'
-    # dir_test_in = '../input/amex-data-integer-dtypes-parquet-format'
-    # dir_out = '../input/processed' 
+    dir_test_in = '../input/amex-data-integer-dtypes-parquet-format'
+    dir_out = '../input/processed' 
 
     preprocess(
         f'{dir_train_in}/train.parquet', f'{dir_out}/train.parquet', 

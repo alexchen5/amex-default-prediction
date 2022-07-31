@@ -22,13 +22,23 @@ NFOLDS = 5
 SEED = 0
 NROWS = None
 
-x_train = pd.read_parquet(f'../test_input/train.parquet')
-y_train = pd.read_csv(f'../input/train_labels.csv').target.values
-x_test = pd.read_parquet(f'../test_input/test.parquet')
+# x_train = pd.read_parquet(f'../input/subsample-processed/train.parquet')
+# y_train = pd.read_csv(f'../input/subsampled/train_labels.csv').target.values
 
-features = [f for f in x_train.columns if f != 'customer_ID' and f != 'target']
-x_train = x_train.fillna(0)
-x_test= x_test.fillna(0)
+# x_train = pd.read_parquet(f'../input/subsample-processed/train.parquet')
+# y_train = pd.read_csv(f'../input/subsampled/train_labels.csv').target.values
+# x_test = pd.read_parquet(f'../input/subsample-processed/test.parquet')
+
+# x_train = pd.read_parquet(f'../test_input/shrunk_train.parquet')
+# y_train = pd.read_csv(f'../test_input/shrunk_train_label.csv').target.values
+# x_test = pd.read_parquet(f'../test_input/shrunk_test.parquet')
+
+x_train = pd.read_parquet(f'../input/processed/train.parquet')
+y_train = pd.read_csv(f'../input/amex-default-prediction/train_labels.csv').target.values
+x_test = pd.read_parquet(f'../input/processed/test.parquet')
+
+features = [f for f in x_train.columns if f != 'customer_ID' and f != 'S_2']
+
 ntrain = x_train.shape[0]
 ntest = x_test.shape[0]
 # print(ntest)
@@ -185,11 +195,15 @@ rf = SklearnWrapper(clf=RandomForestClassifier, seed=SEED, params=rf_params)
 cb = CatboostWrapper(clf= CatBoostClassifier, seed = SEED, params=catboost_params)
 lg = LightGBMWrapper(clf = LGBMClassifier, params = lightgbm_params)
 
-xg_oof_train, xg_score = get_oof(xg)
 # et_oof_train, et_oof_test = get_oof(et)
 # rf_oof_train, rf_oof_test = get_oof(rf)
 lg_oof_train, lg_score = get_oof(lg)
 cb_oof_train, cb_score = get_oof(cb)
+
+# Fill na for models which need it
+x_train = x_train.fillna(0)
+x_test= x_test.fillna(0)
+xg_oof_train, xg_score = get_oof(xg)
 
 print("XG-CV: {}".format(xg_score))
 xg.save_model()
@@ -240,9 +254,17 @@ print(amex_metric(y_train, final_pred))
 # # print(y_train.shape)
 # print(amex_metric(y_train, y_pred_train[:,1]))
 # print(y_pred_test[:,1].shape)
-# sub = pd.DataFrame({'customer_ID': x_test.index,
-#                         'prediction': y_pred_test[:,1]})
-# sub.to_csv('../output/submission_lgbm.csv', index=False)
+
+xg_pred = xg.predict(x_test)
+print(xg_pred)
+lg_pred = lg.predict(x_test)
+print(lg_pred)
+cb_pred = cb.predict(x_test)
+print(cb_pred)
+final_pred = 0.325 * xg_pred + 0.325 * cb_pred + 0.35 * lg_pred
+sub = pd.DataFrame({'customer_ID': x_test.index,
+                        'prediction': final_pred})
+sub.to_csv('../output/submission_stack.csv', index=False)
 # lr = LogisticRegression()
 # stack_model = StackingClassifier( estimators = clf,final_estimator = lr)
 # y_va_pred = stack_model.predict_proba()
