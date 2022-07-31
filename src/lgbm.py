@@ -30,13 +30,13 @@ def lgb_amex_metric(y_true, y_pred):
             amex_metric(y_true, y_pred),
             True)
 
-train = pd.read_parquet(f'../input/processed/train.parquet')  
-test = pd.read_parquet(f'../input/processed/test.parquet')  
-target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
+# train = pd.read_parquet(f'../input/processed/train.parquet')  
+# test = pd.read_parquet(f'../input/processed/test.parquet')  
+# target = pd.read_csv('../input/amex-default-prediction/train_labels.csv').target.values
 
-# train = pd.read_parquet(f'../input/subsampled/train.parquet')
-# test = pd.read_parquet(f'../input/subsampled/test.parquet')
-# target = pd.read_csv('../input/subsampled/train_labels.csv').target.values
+train = pd.read_parquet(f'../input/subsample-processed/train.parquet')
+test = pd.read_parquet(f'../input/subsample-processed/test.parquet')
+target = pd.read_csv('../input/subsampled/train_labels.csv').target.values
 
 print(f"train shape: {train.shape}")
 print(f"test shape: {test.shape}")
