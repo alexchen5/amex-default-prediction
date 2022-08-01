@@ -1,6 +1,5 @@
 import pandas as pd
 import gc
-from importData import import_data
 
 # Shrink data to specified size for faster computations
 
@@ -10,9 +9,11 @@ test = pd.read_parquet(f'../input/test.parquet')
 cid = pd.Categorical(df.pop('customer_ID'), ordered=True)
 
 df = df.groupby(cid).mean()
+df = df.head(10000)
 print(df.shape)
 df.to_parquet(f'../test_input/train.parquet')
 
+labels = labels.head(10000)
 print(labels.shape)
 labels.to_csv(f'../test_input/train_label.csv')
 

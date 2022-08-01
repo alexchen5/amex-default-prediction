@@ -10,6 +10,7 @@ import time
 from datetime import timedelta
 start_time = time.monotonic()
 
+# reading files for train 
 X = pd.read_parquet(f'../test_input/train_lgbm.parquet')
 y = pd.read_csv(f'../input/train_labels.csv').target.values
 
@@ -25,9 +26,9 @@ fit_params={"early_stopping_rounds":30,
         "eval_metric" : [lgb_amex_metric], 
         "eval_set" : [(X_test,y_test)],
         'eval_names': ['valid'],
-        #'callbacks': [lgb.reset_parameter(learning_rate=learning_rate_010_decay_power_099)],
         'categorical_feature': 'auto'}
 
+# distributions of parameters to be tuned with
 param_test ={'num_leaves': sp_randint(6, 50), 
              'min_child_samples': sp_randint(100, 500), 
              'min_child_weight': [1e-5, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2, 1e3, 1e4],
@@ -36,8 +37,10 @@ param_test ={'num_leaves': sp_randint(6, 50),
              'reg_alpha': [0, 1e-1, 1, 2, 5, 7, 10, 50, 100],
              'reg_lambda': [0, 1e-1, 1, 5, 10, 20, 50, 100]}
 
+# using the amex metric as the scorer for the grid search
 scoring = make_scorer(amex_metric, greater_is_better=True)
 
+# randomised grid search to optimise hyperparameter provided in param_distributions
 clf = lgb.LGBMClassifier(max_depth=-1, random_state=314, n_jobs=4, n_estimators=5000)
 gs = RandomizedSearchCV(
     estimator=clf, param_distributions=param_test, 
