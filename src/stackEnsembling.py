@@ -37,11 +37,11 @@ x_train = pd.read_parquet(f'../input/processed/train.parquet')
 y_train = pd.read_csv(f'../input/amex-default-prediction/train_labels.csv').target.values
 x_test = pd.read_parquet(f'../input/processed/test.parquet')
 
-features = [f for f in x_train.columns if f != 'customer_ID' and f != 'S_2']
+# features = [f for f in x_train.columns if f != 'customer_ID' and f != 'S_2']
 
-x_train = pd.read_parquet(f'../test_input/train_lgbm.parquet')
-y_train = pd.read_csv(f'../test_input/train_label.csv').target.values
-# x_test = pd.read_parquet(f'../test_input/test.parquet')
+# x_train = pd.read_parquet(f'../test_input/train_lgbm.parquet')
+# y_train = pd.read_csv(f'../test_input/train_label.csv').target.values
+# # x_test = pd.read_parquet(f'../test_input/test.parquet')
 
 features = [f for f in x_train.columns if f != 'customer_ID' and f != 'target']
 # x_train = x_train.fillna(0)
@@ -162,37 +162,42 @@ rf_params = {
 
 xgb_params = {
     'seed': 0,
-    'colsample_bytree': 0.6,
+    'colsample_bytree': 0.75,
     'subsample': 0.8,
     'learning_rate': 0.05,
     'objective': 'binary:logistic',
     'eval_metric':'logloss',
-    'max_depth': 4,
+    'max_depth': 3,
     'num_parallel_tree': 1,
     'min_child_weight': 1,
-    'nrounds': 200
+    'nrounds': 200,
+    'gamma': 0,
 }
 
 catboost_params = {
-    'iterations': 250,
-    'learning_rate': 0.5,
-    'depth': 3,
-    'l2_leaf_reg': 40,
+    'iterations': 1000,
+    'learning_rate': 0.2,
+    'depth': 5,
+    'l2_leaf_reg': 3,
     'bootstrap_type': 'Bernoulli',
     'subsample': 0.7,
     'scale_pos_weight': 5,
     'eval_metric': 'AUC',
     'od_type': 'Iter',
-    'allow_writing_files': False
+    'allow_writing_files': False,
+    'border_count': 20,
 }
 
 lightgbm_params = {
     'n_estimators': 1200,
     'learning_rate': 0.03, 'reg_lambda':50,
-    'min_child_samples':2400,
-    'num_leaves':95,
-    'colsample_bytree':0.19,
-    'max_bins':511, 'random_state':1  
+    'min_child_samples':439,
+    'num_leaves':46,
+    'colsample_bytree':0.47,
+    'max_bins':511, 'random_state':1,
+    'min_child_weight': 1,
+    'reg_alpha': 1,
+    'subsample': 0.2
 }
 
 
