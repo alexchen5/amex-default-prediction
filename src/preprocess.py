@@ -1,13 +1,13 @@
 '''
-Our methodology to preprocess our data. 
+This file contains the functions we used to preprocess our data. 
+
+Methods for EDA are also written here.
 '''
 
 import datetime
-import functools
 
 from matplotlib import pyplot as plt
 import numpy as np
-from numpy import linalg as LA
 import pandas as pd
 import gc
 
@@ -173,95 +173,95 @@ rmb_maybe = [
 ]
 
 def preprocess(train_in: str, train_out: str, test_in: str, test_out: str):
-    # train = pd.read_parquet(train_in)
-    # test = pd.read_parquet(test_in)
-    # print("Read inputs")
+    train = pd.read_parquet(train_in)
+    test = pd.read_parquet(test_in)
+    print("Read inputs")
     
-    # test_start_cid = test['customer_ID'][0]
-    # temp = pd.concat([train, test], axis=0, ignore_index=True)
-    # del train, test
+    test_start_cid = test['customer_ID'][0]
+    temp = pd.concat([train, test], axis=0, ignore_index=True)
+    del train, test
     
-    # # Remove outlier statements from categorical analysis
-    # temp = temp[(temp['D_64'] != 1) & (temp['D_66'] != 0) & (temp['D_68'] != 0)]
-    # temp.reset_index(inplace=True)
-    # print("Removed outliers")
+    # Remove outlier statements from categorical analysis
+    temp = temp[(temp['D_64'] != 1) & (temp['D_66'] != 0) & (temp['D_68'] != 0)]
+    temp.reset_index(inplace=True)
+    print("Removed outliers")
     
-    # # Drop features from our graphical analysis
-    # temp.drop(rmv_definite, axis=1, inplace=True)
-    # temp.drop(rmb_maybe, axis=1, inplace=True)
-    # print("Dropped features")
+    # Drop features from our graphical analysis
+    temp.drop(rmv_definite, axis=1, inplace=True)
+    temp.drop(rmb_maybe, axis=1, inplace=True)
+    print("Dropped features")
     
-    # # Remove cids 
-    # cids = temp.pop('customer_ID')
+    # Remove cids 
+    cids = temp.pop('customer_ID')
     
-    # # Remove day lavels
-    # days = temp.pop("S_2").map(lambda d: datetime.datetime.strptime(d, "%Y-%m-%d"))
+    # Remove day lavels
+    days = temp.pop("S_2").map(lambda d: datetime.datetime.strptime(d, "%Y-%m-%d"))
     
-    # # Remove all non-continuous features
-    # categorical = temp.select_dtypes(exclude=['float32'])
-    # temp = temp.select_dtypes(include=['float32'])
+    # Remove all non-continuous features
+    categorical = temp.select_dtypes(exclude=['float32'])
+    temp = temp.select_dtypes(include=['float32'])
     
-    # # pd.DataFrame()
-    # # # if f is one of the AMEX given caterogicals
-    # # for f in ['B_30', 'B_38', 'D_114', 'D_116', 'D_117', 'D_120', 'D_126', 'D_63', 'D_64', 'D_66', 'D_68']:
-    # #     try:
-    # #         categorical[f] = temp.pop(f)
-    # #     except:
-    # #         # f has been dropped beforehand
-    # #         pass
-    # # # if f only consists of [-1, 0, 1]
-    # # for f in temp.columns:
-    # #     if np.isin(temp[f].unique(), [-1, 0, 1]).all():
-    # #         categorical[f] = temp.pop(f)
-            
-    # # # Experiment with dropping all non-continuous data
-    # # values = []
-    # # for f in temp.columns:
-    # #     values.append([f, temp[f].unique().size, temp[f].dtype])
-    # # values.sort(key=lambda v: v[1])
-    # # for v in values:
-    # #     print(v)
-    # # return
-        
-    # print(f"Calculated categorical: {categorical.columns}")
-    # # plot_categorical(categorical, days, cpy)
-    
-    # # Create Markers to mark relative time of each statement
-    # markers = pd.DataFrame()
-    # markers['d_end'] = days.map(lambda d: (datetime.datetime(2019, 12, 1) - d).days)
-    # markers['d_year'] = days.map(lambda d: (d - datetime.datetime(d.year, 1, 1)).days)
-    # markers['d_biannual'] = markers['d_year'] % int(365 / 2)
-    # markers['d_month'] = days.map(lambda d: d.day)
-    # markers['d_week'] = days.map(lambda d: d.weekday())
-    # print("Made markers")
-    
-    # # Fit time-static bias to each marker, and shift the continious data
+    # pd.DataFrame()
+    # # if f is one of the AMEX given caterogicals
+    # for f in ['B_30', 'B_38', 'D_114', 'D_116', 'D_117', 'D_120', 'D_126', 'D_63', 'D_64', 'D_66', 'D_68']:
+    #     try:
+    #         categorical[f] = temp.pop(f)
+    #     except:
+    #         # f has been dropped beforehand
+    #         pass
+    # # if f only consists of [-1, 0, 1]
     # for f in temp.columns:
-    #     for marker in markers.columns:
-    #         fit = pd.concat([temp[f], markers[marker]], axis=1, keys=[f, marker])
-    #         fit.dropna(inplace=True)
-    #         fit.set_index(marker, inplace=True)
-    #         fit[f] = fit.groupby(marker)[f].mean()
+    #     if np.isin(temp[f].unique(), [-1, 0, 1]).all():
+    #         categorical[f] = temp.pop(f)
             
-    #         p = np.poly1d(np.polyfit(fit.index.values, fit[f], 1))
-    #         bias = p(markers[marker])
-    #         temp[f] -= bias
-    # # chart_diff(before, temp, markers)
-    # print("Finished Scaling")
+    # # Experiment with dropping all non-continuous data
+    # values = []
+    # for f in temp.columns:
+    #     values.append([f, temp[f].unique().size, temp[f].dtype])
+    # values.sort(key=lambda v: v[1])
+    # for v in values:
+    #     print(v)
+    # return
+        
+    print(f"Calculated categorical: {categorical.columns}")
+    # plot_categorical(categorical, days, cpy)
     
-    # # now combine and separate back into test and train 
-    # df = pd.concat([cids, days, categorical, temp], axis=1)
+    # Create Markers to mark relative time of each statement
+    markers = pd.DataFrame()
+    markers['d_end'] = days.map(lambda d: (datetime.datetime(2019, 12, 1) - d).days)
+    markers['d_year'] = days.map(lambda d: (d - datetime.datetime(d.year, 1, 1)).days)
+    markers['d_biannual'] = markers['d_year'] % int(365 / 2)
+    markers['d_month'] = days.map(lambda d: d.day)
+    markers['d_week'] = days.map(lambda d: d.weekday())
+    print("Made markers")
+    
+    # Fit time-static bias to each marker, and shift the continious data
+    for f in temp.columns:
+        for marker in markers.columns:
+            fit = pd.concat([temp[f], markers[marker]], axis=1, keys=[f, marker])
+            fit.dropna(inplace=True)
+            fit.set_index(marker, inplace=True)
+            fit[f] = fit.groupby(marker)[f].mean()
+            
+            p = np.poly1d(np.polyfit(fit.index.values, fit[f], 1))
+            bias = p(markers[marker])
+            temp[f] -= bias
+    # chart_diff(before, temp, markers)
+    print("Finished Scaling")
+    
+    # now combine and separate back into test and train 
+    df = pd.concat([cids, days, categorical, temp], axis=1)
     
     # Uncomment below if splitting in 2 steps
     
     # df.to_parquet('../input/processed/scaled_all.parquet')
     # return
-    print('start')
-    test = pd.read_parquet(test_in)
-    test_start_cid = test['customer_ID'][0]
-    del test
+    # print('start')
+    # test = pd.read_parquet(test_in)
+    # test_start_cid = test['customer_ID'][0]
+    # del test
     
-    df = pd.read_parquet('../input/processed/scaled_all.parquet')
+    # df = pd.read_parquet('../input/processed/scaled_all.parquet')
     
     print('Now aggregating')
     df = aggregate_features(df)
